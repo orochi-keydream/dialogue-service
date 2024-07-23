@@ -1,0 +1,6 @@
+database:
+  host: "dialogue-service-master"
+  port: 5432
+  dbname: "postgres"
+  user: "postgres"
+  password: ""
