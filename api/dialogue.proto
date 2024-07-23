@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package dialogue;
+
+option go_package = "github.com/orochi-keydream/dialogue-service/api/dialogue";
+
+service DialogueService {
+    rpc GetMessagesV1 (GetMessagesV1Request) returns (GetMessagesV1Response);
+    rpc SendMessageV1 (SendMessageV1Request) returns (SendMessageV1Response);
+}
+
+message GetMessagesV1Request {
+    string FromUserId = 1;
+    string ToUserId = 2;
+}
+
+message GetMessagesV1Response {
+    repeated Message messages = 1;
+
+    message Message {
+        string FromUserId = 1;
+        string ToUserId = 2;
+        string Text = 3;
+    }
+}
+
+message SendMessageV1Request {
+    string FromUserId = 1;
+    string ToUserId = 2;
+    string Text = 3;
+}
+
+message SendMessageV1Response { }
