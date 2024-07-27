@@ -32,7 +32,7 @@ func Run() {
 
 	grpcDialogueService := api.NewDialogueService(appService)
 
-	listener, err := net.Listen("tcp", ":8082")
+	listener, err := net.Listen("tcp", ":8084")
 
 	if err != nil {
 		panic(err)

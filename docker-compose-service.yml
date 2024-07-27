@@ -12,4 +12,4 @@ services:
     networks:
       - dialogue-service-nw
     ports:
-      - "8082:8082"
+      - "8084:8084"
