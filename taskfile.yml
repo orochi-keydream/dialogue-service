@@ -11,6 +11,16 @@ tasks:
     cmds:
       - go run ./cmd/app/main.go --config ./configs/local.yml
 
+  compose-service-up:
+    desc: Up the container of the service
+    cmds:
+      - docker compose -f ./docker-compose-service.yml up -d
+
+  compose-service-down:
+    desc: Down the container of the service
+    cmds:
+      - docker compose -f ./docker-compose-service.yml down
+
   compose-infra-up:
     desc: Up infrastructure containers
     cmds:
