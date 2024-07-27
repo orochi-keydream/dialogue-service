@@ -1,15 +1,20 @@
 networks:
   dialogue-service-nw:
+    name: dialogue-service-nw
+    driver: bridge
+  interservice-nw:
+    name: interservice-nw
     driver: bridge
 
 services:
   backend:
-    container_name: backend
+    container_name: dialogue-service-backend
     image: dialogue-service:0.1.0
     build:
       context: ./
       dockerfile: service.Dockerfile
     networks:
       - dialogue-service-nw
+      - interservice-nw
     ports:
       - "8084:8084"

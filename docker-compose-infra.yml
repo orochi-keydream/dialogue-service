@@ -2,6 +2,7 @@ name: "dialogue-service"
 
 networks:
   dialogue-service-nw:
+    name: dialogue-service-nw
     driver: bridge
 
 volumes:
