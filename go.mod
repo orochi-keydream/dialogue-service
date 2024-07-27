@@ -23,6 +23,7 @@ require (
 )
 
 require (
+	github.com/google/uuid v1.6.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jackc/pgx/v4 v4.18.3
 	golang.org/x/net v0.27.0 // indirect

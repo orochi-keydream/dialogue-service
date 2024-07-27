@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/orochi-keydream/dialogue-service/internal/model"
@@ -35,11 +36,13 @@ func (s *AppService) SendMessage(ctx context.Context, cmd model.SendMessageComma
 		SentAt:     time.Now().UTC(),
 	}
 
-	_, err := s.repository.AddMessage(ctx, msg, nil)
+	messageId, err := s.repository.AddMessage(ctx, msg, nil)
 
 	if err != nil {
 		return err
 	}
+
+	slog.InfoContext(ctx, fmt.Sprintf("Message %v sent to chat %v", messageId, chatId))
 
 	return nil
 }
@@ -47,6 +50,8 @@ func (s *AppService) SendMessage(ctx context.Context, cmd model.SendMessageComma
 func (s *AppService) GetMessages(ctx context.Context, cmd model.GetMessagesCommand) ([]*model.Message, error) {
 	chatId := s.buildChatId(cmd.FromUserId, cmd.ToUserId)
 	messages, err := s.repository.GetMessages(ctx, chatId, nil)
+
+	slog.InfoContext(ctx, fmt.Sprintf("Got %v messages from chat %v", len(messages), chatId))
 
 	if err != nil {
 		return nil, err
