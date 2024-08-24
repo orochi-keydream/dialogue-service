@@ -34,16 +34,17 @@ func (s *DialogueService) GetMessagesV1(ctx context.Context, req *dialogue.GetMe
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
 
-	items := make([]*dialogue.GetMessagesV1Response_Message, 0, len(messages))
+	items := make([]*dialogue.GetMessagesV1Response_Message, len(messages))
 
-	for _, message := range messages {
+	for i, message := range messages {
 		item := &dialogue.GetMessagesV1Response_Message{
+			MessageId:  int64(message.MessageId),
 			FromUserId: string(message.FromUserId),
 			ToUserId:   string(message.ToUserId),
-			Text:       string(message.Text),
+			Text:       message.Text,
 		}
 
-		items = append(items, item)
+		items[i] = item
 	}
 
 	resp := &dialogue.GetMessagesV1Response{
