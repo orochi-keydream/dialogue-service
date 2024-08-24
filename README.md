@@ -40,7 +40,7 @@ docker compose -f ./docker-compose-infra.yml up -d
 Execute the commands below to apply migrations:
 
 ```bash
-goose -dir ./migrations/ postgres "host=localhost port=5432 user=postgres dbname=postgres" up
+goose -dir ./migrations/ postgres "host=localhost port=25432 user=postgres dbname=postgres" up
 ```
 
 ## 3 Run the service
