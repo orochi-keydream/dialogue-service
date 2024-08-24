@@ -5,16 +5,20 @@ networks:
   interservice-nw:
     name: interservice-nw
     driver: bridge
+  kafka-nw:
+    name: kafka-nw
+    driver: bridge
 
 services:
   backend:
     container_name: dialogue-service-backend
-    image: dialogue-service:0.1.0
+    image: dialogue-service:0.2.0
     build:
       context: ./
       dockerfile: service.Dockerfile
     networks:
       - dialogue-service-nw
       - interservice-nw
+      - kafka-nw
     ports:
-      - "8084:8084"
+      - "28084:8084"
