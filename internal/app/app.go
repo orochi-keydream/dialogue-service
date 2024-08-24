@@ -3,9 +3,16 @@ package app
 import (
 	"database/sql"
 	"fmt"
+	"github.com/orochi-keydream/dialogue-service/internal/jobs"
+	"github.com/orochi-keydream/dialogue-service/internal/kafka/consumer"
+	"github.com/orochi-keydream/dialogue-service/internal/kafka/producer"
+	"golang.org/x/net/context"
 	"log/slog"
 	"net"
 	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 
 	"github.com/orochi-keydream/dialogue-service/internal/api"
 	"github.com/orochi-keydream/dialogue-service/internal/config"
@@ -21,18 +28,44 @@ import (
 )
 
 func Run() {
+	ctx, cancel := context.WithCancel(context.Background())
+
 	cfg := config.LoadConfig()
 
 	addLogger()
 
-	conn := NewConn(cfg)
-	repo := repository.NewDialogRepository(conn)
+	conn := NewConn(cfg.Database)
+	dialogueRepository := repository.NewDialogueRepository(conn)
+	outboxRepository := repository.NewOutboxRepository(conn)
+	commandRepository := repository.NewCommandRepository(conn)
+	transactionManager := repository.NewTransactionManager(conn)
 
-	appService := service.NewAppService(repo)
+	counterCommandProducer, err := producer.NewCounterCommandProducer(cfg.Kafka)
+
+	if err != nil {
+		panic(err)
+	}
+
+	appService := service.NewAppService(dialogueRepository, outboxRepository, commandRepository, transactionManager)
+	outboxService := service.NewOutboxService(outboxRepository, counterCommandProducer, transactionManager)
+
+	wg := &sync.WaitGroup{}
+
+	dialogueCommandConsumer := consumer.NewDialogueCommandConsumer(appService)
+
+	wg.Add(1)
+	err = consumer.RunDialogueCommandConsumer(ctx, cfg.Kafka, dialogueCommandConsumer, wg)
+
+	if err != nil {
+		panic(err)
+	}
+
+	outboxJob := jobs.NewOutboxJob(outboxService)
+	outboxJob.Start(ctx)
 
 	grpcDialogueService := api.NewDialogueService(appService)
 
-	listener, err := net.Listen("tcp", ":8084")
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Service.GrpcPort))
 
 	if err != nil {
 		panic(err)
@@ -48,11 +81,26 @@ func Run() {
 	dialogue.RegisterDialogueServiceServer(server, grpcDialogueService)
 	reflection.Register(server)
 
-	err = server.Serve(listener)
+	go func() {
+		err = server.Serve(listener)
 
-	if err != nil {
-		panic(err)
+		if err != nil {
+			panic(err)
+		}
+	}()
+
+	sigterm := make(chan os.Signal, 1)
+	signal.Notify(sigterm, syscall.SIGTERM)
+
+	select {
+	case <-sigterm:
+		server.GracefulStop()
+		cancel()
 	}
+
+	wg.Wait()
+
+	slog.Info("Gracefully shut down")
 }
 
 func addLogger() {
@@ -62,14 +110,14 @@ func addLogger() {
 	slog.SetDefault(logger)
 }
 
-func NewConn(cfg config.Config) *sql.DB {
+func NewConn(cfg config.DatabaseConfig) *sql.DB {
 	connStr := fmt.Sprintf(
 		"host=%v port=%v user=%v password=%v dbname=%v",
-		cfg.Database.Host,
-		cfg.Database.Port,
-		cfg.Database.User,
-		cfg.Database.Password,
-		cfg.Database.DatabaseName)
+		cfg.Host,
+		cfg.Port,
+		cfg.User,
+		cfg.Password,
+		cfg.DatabaseName)
 
 	conn, err := sql.Open("pgx", connStr)
 
