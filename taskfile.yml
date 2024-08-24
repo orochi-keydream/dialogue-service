@@ -34,10 +34,10 @@ tasks:
   migrate-up:
     desc: Migrate database up
     cmds:
-      - goose -dir ./migrations/ postgres "host=localhost port=5432 user=postgres dbname=postgres" up
+      - goose -dir ./migrations/ postgres "host=localhost port=25432 user=postgres dbname=postgres" up
 
   migrate-down:
     desc: Migrate database down
     cmds:
-      - goose -dir ./migrations/ postgres "host=localhost port=5432 user=postgres dbname=postgres" down
+      - goose -dir ./migrations/ postgres "host=localhost port=25432 user=postgres dbname=postgres" down
 
